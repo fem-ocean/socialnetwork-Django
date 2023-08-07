@@ -1,0 +1,25 @@
+{% extends 'network/layout.html' %}
+{% load static %}
+
+{% block title %}User profile{% endblock %}
+
+
+{%  block body %}
+
+<h2>Following</h2>
+
+<div class="m-auto mb-5" style="max-width: 80%;">
+    <ul class="list-group list-group-flush">
+        {% for post in ownerPosts %}
+        <li class="list-group-item"><a
+                href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post:
+            </strong>{{post.content}}<br />
+            Likes: {{post.number_of_likes}}
+            <br />
+            {{post.timestamp}}
+        </li>
+
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}
