@@ -4,15 +4,53 @@
 {% block title %}All Posts {% endblock %}
 
 
-
-
-
-
-
-
 {% block body %}
+    <script>
+        
+            function handleImageLikeUnlike(id, arr) {
+                console.log(id)
+                console.log(arr)
 
+                fetch(`/isliked/${id}`)
+                .then(response=> response.json())
+                .then(result => {
+                    console.log(`is_liked is: ${result.is_liked}`)
+                    
+                    const loveImg = document.getElementById(`like_${id}`);
+
+                    if (result.is_liked) {
+                        console.log("post liked is true")
+                        fetch(`/unlike/${id}`)
+                            .then(response => response.json())
+                            .then(result => {
+                                console.log(result.message);
+                                loveImg.classList.remove('unlike');
+                                loveImg.classList.add('like');
+                            })
+                    } else {
+                        console.log("post liked is false")
+                        fetch(`/like/${id}`)
+                            .then(response => response.json())
+                            .then(result => {
+                                console.log(result);
+                                loveImg.classList.remove('like');
+                                loveImg.classList.add('unlike');
+
+                                
+                                // let numOfLikesSpan = document.querySelector('#numOfLikes')
+                                // numOfLikesSpan.textContent = result.updated_post_likes
+                             
+                            })
+                    }
+                })
+
+            }
+    </script>
+
+    <!-- Current user can create a new post if he is logged in -->
+    {% if user.is_authenticated %}
     <div>
+        
         <h1>New Post</h1>
         <form action="{% url 'index' %}" method="POST">
             {% csrf_token %}
@@ -22,36 +60,102 @@
         </form>
     </div>
 
+    {% endif %}
 
     
-    <div class="m-auto mt-4" style="max-width: 80%; min-height: 200px;">
-        
-        {% for post in allPosts %}
-        <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
-    </div>
-    
+    <!-- All Posts -->
     <div class="m-auto mb-5" style="max-width: 80%;">
         <ul class="list-group list-group-flush">
-            {% for post in allPosts %}
-            <li class="list-group-item"><a href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post: </strong>{{post.content}}<br />
-                Likes: {{post.number_of_likes}}
+            {% for post in page_obj %}
+            <li class="list-group-item"><a
+                    href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a>
+                    <br />
+                    <strong>Post:</strong><p id="post_content_{{post.id}}">{{post.content}}</p><br />
+                
+                <!-- Edit Button and Modal logic if user is authenticated -->
+                {% if user.is_authenticated %}
+                    {% if user == post.owner %}
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editButton_{{post.id}}">Edit Post</button>
+
+                    <!-- Modal -->
+                    <div class="modal" tabindex="-1" id="editButton_{{post.id}}" aria-labelledby="postEditModal" aria-hidden="true">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                    <h5 class="modal-title">Edit Post</h5>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body">
+                                    <textarea name="editContent" id="textarea_{{post.id}}" cols="30" rows="10" placeholder="" class="form-control">{{post.content}}</textarea>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                    <button type="button" class="btn btn-primary" onclick="handlePostEdit({{ post.id }})">Save changes</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% endif %}
+
+
+                    <br />
+
+                    <!-- check if post is already liked. if yes, show the filled love image else show the unfilled love image -->
+                    {% if post.id in allPostsLiked %}
+                    <span class="unlike" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+                    <!-- src="{% static 'images/loved.svg' %}" -->
+                    {% else %}
+
+                    <!-- no -->
+                    <span class="like" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+                    <!-- src="{% static 'images/love.svg' %}" -->
+                    {% endif %}
+
+                {% else %}
+
+                    {% if post.id in allPostsLiked %}
+                    <!-- means already liked -->
+                    
+                    <span class="unlike" id="like_{{post.id}}" onclick="window.alert('You have to sign in to unlike')"></span>
+                    <!-- src="{% static 'images/loved.svg' %}" -->
+                    {% else %}
+                    
+                    <!-- no -->
+                    <span class="like" id="like_{{post.id}}" onclick="window.alert('You have to sign in to like')"></span>
+                    <!-- src="{% static 'images/love.svg' %}" -->
+                    {% endif %}
+
+                {% endif %}
+            
+                
+                Likes: <span id="likeSpan"><span id="numOfLikes">{{post.number_of_likes}}</span></span>
                 <br />
                 {{post.timestamp}}
             </li>
-    
             {% endfor %}
         </ul>
     </div>
 
-   
-
-
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+            <!-- <a href="?page=1">&laquo; first</a> -->
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+    
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <!-- <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> -->
+            {% endif %}
+        </span>
+    </div>
 
 {% endblock %}
-
-
-
 
 
 {% block script %}

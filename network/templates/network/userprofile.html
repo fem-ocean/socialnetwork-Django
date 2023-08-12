@@ -6,14 +6,95 @@
 
 {% block body %}
 
-{{userDetails.username}}
+<script>
+    function handlePostEdit(id) {
+        // identify the post with postid
+        // get the post content and prefill a form with a text area
+        // make a put request to change the post content to the endpoint and get a json response that changes the result
+
+        // console.log("hi")
+        // console.log(id)
+        let edit = document.querySelector(`#textarea_${id}`).value
+        // console.log(edit)
+        let content = document.querySelector(`#post_content_${id}`)
+        let modal = document.querySelector(`#editButton_${id}`)
+        fetch(`/editpost/${id}`, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                content: edit
+            })
+        })
+            .then(response => response.json())
+            .then(result => {
+                console.log(result);
+                content.innerHTML = result.content;
+
+                // remove modal and overlay/backdrop
+                modal.classList.remove = ('show');
+                modal.setAttribute('aria-hidden', 'true');
+                modal.setAttribute('style', 'display: none')
+                modal.remove();
+                let backdrop = document.querySelector('.modal-backdrop');
+                backdrop.remove()
+
+            })
+
+        }
+
+    
+    function handleImageLikeUnlike(id, arr) {
+        console.log(id)
+        console.log(arr)
+
+        fetch(`/isliked/${id}`)
+            .then(response => response.json())
+            .then(result => {
+                console.log(`is_liked is: ${result.is_liked}`)
+
+                const loveImg = document.getElementById(`like_${id}`);
+
+                if (result.is_liked) {
+                    console.log("post liked is true")
+                    fetch(`/unlike/${id}`)
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log(result.message);
+                            loveImg.classList.remove('unlike');
+                            loveImg.classList.add('like');
+                        })
+                } else {
+                    console.log("post liked is false")
+                    fetch(`/like/${id}`)
+                        .then(response => response.json())
+                        .then(result => {
+                            console.log(result);
+                            loveImg.classList.remove('like');
+                            loveImg.classList.add('unlike');
+
+
+                            // let numOfLikesSpan = document.querySelector('#numOfLikes')
+                            // numOfLikesSpan.textContent = result.updated_post_likes
+
+                        })
+                }
+            })
+
+    }
+</script>
+
+<h1>{{userDetails.username}}</h1>
 <br />
 
+<div>
+    Number of followers {{userDetails.username}} has: <span id="followernum">{{user_to_follow_num}}</span> Users
 
-Number of followers: {{followersCount}} Users
+</div>
 
 <br />
-Following:{{followingCount}} Users
+Number of users {{userDetails.username}} is Following:{{user_following_num}} Users
 
 <br />
 
@@ -22,23 +103,78 @@ Following:{{followingCount}} Users
 <br />
 
 <!-- Javascript for when domcontent finish loadining run a function that makes a post/put request to the function in views.py. Javascript then changes the color of the button based on whether the request is successful or not -->
-{% if not user_own_profile %}
+{% if not user_own_profile and user.is_authenticated %}
 <div>
     <a id="followlink" href="{% url 'followbutton' userDetails.id %}">Follow</a>
 </div>
-{% else %}
-<div></div>
 {% endif %}
 
 
-
 <!-- Users post in reverse chronological order -->
+
 <div class="m-auto mb-5" style="max-width: 80%;">
     <ul class="list-group list-group-flush">
-        {% for post in ownerPosts %}
+        {% for post in page_obj %}
         <li class="list-group-item"><a
-                href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post:
-            </strong>{{post.content}}<br />
+                href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post:</strong><span id="post_content_{{post.id}}">{{post.content}}</span>
+
+                <br />
+
+            <!-- post edit button and modal -->
+            {% if user.is_authenticated %}
+                {% if user == post.owner %}
+                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editButton_{{post.id}}">Edit Post</button>
+                
+                <!-- Modal -->
+                <div class="modal" tabindex="-1" id="editButton_{{post.id}}" aria-labelledby="postEditModal" aria-hidden="true">
+                    <div class="modal-dialog">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Edit Post</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <textarea name="editContent" id="textarea_{{post.id}}" cols="30" rows="10" placeholder=""
+                                    class="form-control">{{post.content}}</textarea>
+                            </div>
+                            <div class="modal-footer">
+                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                <button type="button" class="btn btn-primary" onclick="handlePostEdit({{ post.id }})">Save
+                                    changes</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+                <br />
+
+            <!-- check if post is already liked. if yes, show the filled love image else show the unfilled love image -->
+            {% if post.id in allPostsLiked %}
+            <span class="unlike" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+            <!-- src="{% static 'images/loved.svg' %}" -->
+            {% else %}
+            
+            <!-- no -->
+            <span class="like" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+            <!-- src="{% static 'images/love.svg' %}" -->
+            {% endif %}
+
+        {% else %}
+                {% if post.id in allPostsLiked %}
+                <!-- means already liked -->
+                
+                <span class="unlike" id="like_{{post.id}}" onclick="window.alert('You have to sign in to unlike')"></span>
+                <!-- src="{% static 'images/loved.svg' %}" -->
+                {% else %}
+                
+                <!-- no -->
+                <span class="like" id="like_{{post.id}}" onclick="window.alert('You have to sign in to like')"></span>
+                <!-- src="{% static 'images/love.svg' %}" -->
+                {% endif %}
+
+
+        {% endif %}
+            
             Likes: {{post.number_of_likes}}
             <br />
             {{post.timestamp}}
@@ -48,11 +184,28 @@ Following:{{followingCount}} Users
     </ul>
 </div>
 
+<!-- Pagination -->
+<div class="pagination">
+    <span class="step-links">
+        {% if page_obj.has_previous %}
+        <!-- <a href="?page=1">&laquo; first</a> -->
+        <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+        </span>
+
+        {% if page_obj.has_next %}
+        <a href="?page={{ page_obj.next_page_number }}">next</a>
+        <!-- <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> -->
+        {% endif %}
+    </span>
+</div>
 
 
 {% endblock %}
 
 {% block script %}
     <script src="{% static 'network/userprofile.js' %}"></script>
-
 {% endblock %}

@@ -1,5 +1,7 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
+from django.db.models.signals import post_save
+from django.dispatch import receiver
 
 
 
@@ -19,27 +21,20 @@ class Post(models.Model):
     
 
 class Like(models.Model):
-    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likedpost' )
-    liked = models.BooleanField(default=False)
+    post = models.ForeignKey(Post, on_delete=models.CASCADE, related_name='likedpost', blank=True, null=True )
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="personwholiked", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.id}: {self.post.owner} {self.post.content} {self.liked}"
+        return f"user:{self.user} LIKED post: {self.post.content} "
 
 
 class Follower(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following")
-    follower = models.ManyToManyField(User, blank=True, null=True, related_name="followers")
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="followers", default=False)
+    follower = models.ForeignKey(User, on_delete=models.CASCADE, related_name="following", default=False)
 
     def __str__(self):
-        return f"{self.user} has {self.follower.count()} followers"
-
-
-class Following(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="userwhoisfollowing")
-    following = models.ManyToManyField(User, blank=True, null=True, related_name="userfollowings")
-
-    def __str__(self):
-        return f"{self.user} is following {self.following.count()} profiles"
-
-
-
+        return f"{self.follower} is following {self.user}"
+    
+    class Meta:
+        unique_together = ['user', 'follower']
+    

@@ -1,25 +1,57 @@
 {% extends 'network/layout.html' %}
 {% load static %}
 
-{% block title %}User profile{% endblock %}
+{% block title %}Following{% endblock %}
 
 
 {%  block body %}
 
-<h2>Following</h2>
+{% if user.is_authenticated %}
 
-<div class="m-auto mb-5" style="max-width: 80%;">
-    <ul class="list-group list-group-flush">
-        {% for post in ownerPosts %}
-        <li class="list-group-item"><a
-                href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post:
-            </strong>{{post.content}}<br />
-            Likes: {{post.number_of_likes}}
-            <br />
-            {{post.timestamp}}
-        </li>
+    <h2>Following</h2>
 
-        {% endfor %}
-    </ul>
-</div>
+    <!-- posts user is following in reverse chronological order and paginated -->
+    
+    <div class="m-auto mb-5" style="max-width: 80%;">
+        <ul class="list-group list-group-flush">       
+            {% for post in page_obj %}
+                <li class="list-group-item"><a
+                        href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a><br /><strong>Post:
+                    </strong>{{post.content}}<br />
+                    Likes: {{post.number_of_likes}}
+                    <br />
+                    {{post.timestamp}}
+                </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+        <span class="step-links">
+            {% if page_obj.has_previous %}
+            <!-- <a href="?page=1">&laquo; first</a> -->
+            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
+            {% endif %}
+    
+            <span class="current">
+                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
+            </span>
+    
+            {% if page_obj.has_next %}
+            <a href="?page={{ page_obj.next_page_number }}">next</a>
+            <!-- <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> -->
+            {% endif %}
+        </span>
+    </div>
+
+
+{% else %}
+
+    <h2>Oops...You are not currently signed in</h2>
+    
+    <a class="nav-link" href="{% url 'login' %}">Log In</a>
+    
+
+{% endif %}
 {% endblock %}

@@ -13,6 +13,10 @@ urlpatterns = [
 
 
     # API Routes
-    path("followbutton/<int:userid>", views.followButton, name="followbutton")
+    path("followbutton/<int:userid>", views.followButton, name="followbutton"),
+    path("editpost/<int:postid>", views.editpost, name="editpost"),
+    path("unlike/<int:postid>", views.unlike, name="unlike"),
+    path("like/<int:postid>", views.like, name="like"),
+    path("isliked/<int:postid>", views.isliked, name="isliked"),
 
 ]
