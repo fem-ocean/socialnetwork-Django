@@ -36,8 +36,31 @@
                                 loveImg.classList.remove('like');
                                 loveImg.classList.add('unlike');
 
+                                if (result.message == "liked successfully"){
+                                    let newSpan = document.createElement('span');
+                                    newSpan.textContent = result.updated_post_likes;
+
+                                    let likeSpan = document.querySelector('#likeSpan')
+
+                                    let numOfLikesSpan =document.querySelector('#numOfLikes');
+                                    // likeSpan.remove(numOfLikesSpan);
+                                    likeSpan.replaceChild(newSpan, numOfLikesSpan);
+
+                                    console.log(likeSpan)
+
+
+                                    // let numOfLikes = numOfLikesSpan.textContent
+                                    // console.log(numOfLikes)
+
+                                    // numOfLikesSpan.textContent = parseInt(numOfLikes) + 1;
+
+                                    // console.log(numOfLikesSpan)
+
+
+                                }
+
                                 
-                                // let numOfLikesSpan = document.querySelector('#numOfLikes')
+                                // let numOfLikesSpan = 
                                 // numOfLikesSpan.textContent = result.updated_post_likes
                              
                             })
@@ -49,111 +72,150 @@
 
     <!-- Current user can create a new post if he is logged in -->
     {% if user.is_authenticated %}
-    <div>
-        
-        <h1>New Post</h1>
+    <div class="mx-auto container mt-5 mb-5">
+        <h3>New Post</h3>
         <form action="{% url 'index' %}" method="POST">
             {% csrf_token %}
-            <label for="newpost"><strong>New Post</strong></label>
-            <textarea name="newpost" id="newpost" cols="80" rows="5"></textarea>
-            <button>Submit</button>
+            <!-- <label for="newpost"><strong>New Post</strong></label> -->
+            <textarea class="rounded form-control" name="newpost" id="newpost" cols="100" rows="5" autofocus placeholder="Let the world hear you. Type something here..."></textarea>
+            <div>
+                <button class="btn btn-dark mt-4">Submit</button>
+            </div>
         </form>
     </div>
-
     {% endif %}
 
     
     <!-- All Posts -->
-    <div class="m-auto mb-5" style="max-width: 80%;">
-        <ul class="list-group list-group-flush">
+    <div class=" mx-auto mt-5 bg-light" style="max-width: 100%; height: fit-content;">
+        <ul class="container  mt-5 pt-5 list-group" style="max-width: 40%;">
             {% for post in page_obj %}
-            <li class="list-group-item"><a
-                    href="{% url 'userprofile' post.owner.id %}">{{post.owner.username}}</a>
-                    <br />
-                    <strong>Post:</strong><p id="post_content_{{post.id}}">{{post.content}}</p><br />
-                
-                <!-- Edit Button and Modal logic if user is authenticated -->
-                {% if user.is_authenticated %}
-                    {% if user == post.owner %}
-                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editButton_{{post.id}}">Edit Post</button>
-
-                    <!-- Modal -->
-                    <div class="modal" tabindex="-1" id="editButton_{{post.id}}" aria-labelledby="postEditModal" aria-hidden="true">
-                        <div class="modal-dialog">
-                            <div class="modal-content">
-                                <div class="modal-header">
-                                    <h5 class="modal-title">Edit Post</h5>
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                </div>
-                                <div class="modal-body">
-                                    <textarea name="editContent" id="textarea_{{post.id}}" cols="30" rows="10" placeholder="" class="form-control">{{post.content}}</textarea>
-                                </div>
-                                <div class="modal-footer">
-                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                                    <button type="button" class="btn btn-primary" onclick="handlePostEdit({{ post.id }})">Save changes</button>
+                <li class="list-group-item shadow-lg p-3 mb-1 bg-white rounded">
+                    <div class="container bg-light p-1 d-flex justify-content-between">
+                        <a href="{% url 'userprofile' post.owner.id %}" class="username"><strong>{{post.owner.username|title}}</strong></a>
+                        
+                        <!-- Edit Button and modal logic -->
+                        {% if user == post.owner %}
+                        <button class="btn btn-light" data-bs-toggle="modal" data-bs-target="#editButton_{{post.id}}">
+                            <span><img src="{% static 'images/editicon.svg' %}" /></span>
+                            <span class="editText">Edit Post</span>
+                        </button>
+                        
+                        <!-- Modal -->
+                        <div class="modal" tabindex="-1" id="editButton_{{post.id}}" aria-labelledby="postEditModal" aria-hidden="true">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Edit Post</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <textarea name="editContent" id="textarea_{{post.id}}" cols="30" rows="10" placeholder=""
+                                            class="form-control">{{post.content}}</textarea>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                        <button type="button" class="btn btn-primary" onclick="handlePostEdit({{ post.id }})">Save
+                                            changes</button>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                        {% endif %}
                     </div>
-                    {% endif %}
 
+                    <div class="contianer mt-4">
+                        <p id="post_content_{{post.id}}">{{post.content}}</p>
 
-                    <br />
+                    </div>
 
-                    <!-- check if post is already liked. if yes, show the filled love image else show the unfilled love image -->
-                    {% if post.id in allPostsLiked %}
-                    <span class="unlike" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
-                    <!-- src="{% static 'images/loved.svg' %}" -->
-                    {% else %}
-
-                    <!-- no -->
-                    <span class="like" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
-                    <!-- src="{% static 'images/love.svg' %}" -->
-                    {% endif %}
-
-                {% else %}
-
-                    {% if post.id in allPostsLiked %}
-                    <!-- means already liked -->
                     
-                    <span class="unlike" id="like_{{post.id}}" onclick="window.alert('You have to sign in to unlike')"></span>
-                    <!-- src="{% static 'images/loved.svg' %}" -->
-                    {% else %}
-                    
-                    <!-- no -->
-                    <span class="like" id="like_{{post.id}}" onclick="window.alert('You have to sign in to like')"></span>
-                    <!-- src="{% static 'images/love.svg' %}" -->
-                    {% endif %}
 
-                {% endif %}
-            
-                
-                Likes: <span id="likeSpan"><span id="numOfLikes">{{post.number_of_likes}}</span></span>
-                <br />
-                {{post.timestamp}}
-            </li>
+                    <div class="d-flex flex-row justify-content-between mt-5">
+
+                        <!-- Like or Unlike a post if user is authenticated -->
+                        {% if user.is_authenticated %}
+
+                            <div class="d-flex flex-row align-items-center justify-content-between text-muted" style="width: 35px;">
+                                <!-- check if post is already liked. if yes, show the filled love image else show the unfilled love image -->
+                                {% if post.id in allPostsLiked %}
+                                <span class="unlike" style="cursor: pointer;" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+                                <!-- src="{% static 'images/loved.svg' %}" -->
+                                {% else %}
+                                
+                                <!-- no -->
+                                <span class="like" style="cursor: pointer;" id="like_{{post.id}}" onclick="handleImageLikeUnlike({{post.id}}, {{allPostsLiked}})"></span>
+                                <!-- src="{% static 'images/love.svg' %}" -->
+                                {% endif %}
+
+                                <span id="likeSpan">
+                                    <span id="numOfLikes" class="font-weight-light " style="font-size: 18px" ;>
+                                        {{post.number_of_likes}}
+                                    </span>
+                                </span>
+                            </div>
+
+                        {% else %}
+                            <div class="d-flex flex-row align-items-center justify-content-between text-muted" style="width: 35px;">
+                                <!-- check if post is already liked. if yes, show the filled love image else show the unfilled love image -->
+                                {% if post.id in allPostsLiked %}
+                                <span class="unlike" style="cursor: pointer;" id="like_{{post.id}}"
+                                    onclick="window.alert('You have to sign in to unlike')"></span>
+                                <!-- src="{% static 'images/loved.svg' %}" -->
+                                {% else %}
+                            
+                                <!-- no -->
+                                <span class="like" style="cursor: pointer;" id="like_{{post.id}}"
+                                    onclick="window.alert('You have to sign in to like')"></span>
+                                <!-- src="{% static 'images/love.svg' %}" -->
+                                {% endif %}
+                            
+                                <span id="likeSpan">
+                                    <span id="numOfLikes" class="font-weight-light " style="font-size: 18px" ;>
+                                        {{post.number_of_likes}}
+                                    </span>
+                                </span>
+                            </div>
+
+                        {% endif %}
+
+                        <div>
+                            <span class="font-weight-light text-muted" style="font-size: 12px;">{{post.timestamp}}</span>
+                        </div>
+                    </div>                 
+                </li>
             {% endfor %}
         </ul>
     </div>
 
     <!-- Pagination -->
-    <div class="pagination">
-        <span class="step-links">
-            {% if page_obj.has_previous %}
-            <!-- <a href="?page=1">&laquo; first</a> -->
-            <a href="?page={{ page_obj.previous_page_number }}">previous</a>
-            {% endif %}
     
-            <span class="current">
-                Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}.
-            </span>
-    
-            {% if page_obj.has_next %}
-            <a href="?page={{ page_obj.next_page_number }}">next</a>
-            <!-- <a href="?page={{ page_obj.paginator.num_pages }}">last &raquo;</a> -->
-            {% endif %}
-        </span>
+
+    <div class=" mx-auto d-flex justify-content-center pt-5 pb-5" style="display: block; width: 50%; height: 120px;">
+        <nav aria-label="page pagination" class="d-flex justify-content-center align-items-center">
+            <ul class="pagination mx-auto d-flex justify-content-center ">
+                {% if page_obj.has_previous %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}" tabindex="-1"
+                        aria-disabled="true">Previous</a>
+                </li>
+                {% endif %}
+        
+        
+                {% for page in page_obj.paginator.page_range %}
+                <!-- {{page}} -->
+                <li class="page-item"><a class="page-link" href="?page={{page}}">{{page}}</a></li>
+                {% endfor %}
+        
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+        </nav>
     </div>
+    
 
 {% endblock %}
 

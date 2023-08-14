@@ -1,12 +1,13 @@
 document.addEventListener('DOMContentLoaded', function(){
     // try{
+        const buttonlink = document.querySelector('#buttonlink');
         const followlink = document.querySelector('#followlink');
         const urllink = followlink.href;
     // }catch(err){console.log("User not signed in/User own profile")}
     
     
     // Handles if followlink is not display and listen for a click event on the follow/unfollow button
-        followlink.addEventListener('click', function(event){
+        buttonlink.addEventListener('click', function(event){
             event.preventDefault()
             if (followlink.textContent === 'Unfollow'){
                 changeFollowingToFalse(urllink);
@@ -29,10 +30,11 @@ document.addEventListener('DOMContentLoaded', function(){
 
             if (result.userisafollower){
                 document.querySelector('#followlink').textContent = 'Unfollow';
-                document.querySelector('#followlink').style.color = 'red';
+                document.querySelector('#buttonlink').style.backgroundColor = 'red';
+
             }else{
                 document.querySelector('#followlink').textContent = 'Follow';
-                document.querySelector('#followlink').style.color = 'blue';
+                document.querySelector('#buttonlink').style.backgroundColor = 'black';
             }
         }) 
     }
@@ -58,7 +60,7 @@ function changeFollowingToTrue(urllink){
     .then(response=>{
         if (response.status == 201){
             document.querySelector('#followlink').textContent = 'Unfollow';
-            document.querySelector('#followlink').style.color = 'red';
+            document.querySelector('#buttonlink').style.backgroundColor = 'red';
             let followerspan = document.querySelector('#followernum')
             let followers = followerspan.textContent;     
             followerspan.textContent = parseInt(followers) + 1;
@@ -82,7 +84,7 @@ function changeFollowingToFalse(urllink){
     .then(response=>{
             if (response.status == 201){
                 document.querySelector('#followlink').textContent = 'Follow';
-                document.querySelector('#followlink').style.color = 'blue';
+                document.querySelector('#buttonlink').style.backgroundColor = 'black';
                 let followerspan = document.querySelector('#followernum')
                 let followers = followerspan.textContent;     
                 followerspan.textContent = parseInt(followers) - 1;

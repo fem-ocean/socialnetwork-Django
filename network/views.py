@@ -193,7 +193,7 @@ def following(request, userid):
     list_of_users_following = [users.user for users in current_user_followings]
 
     # Query all posts from Post table the current user is following
-    posts_user_is_following = Post.objects.filter(owner__in=list_of_users_following).order_by('-id')
+    posts_user_is_following = Post.objects.filter(owner__in=list_of_users_following).annotate(number_of_likes=Count('likedpost')).order_by('-id')
 
     # print(posts_user_is_following)
         
