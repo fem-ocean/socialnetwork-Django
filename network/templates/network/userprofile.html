@@ -48,6 +48,8 @@
     function handleImageLikeUnlike(id, arr) {
         console.log(id)
         console.log(arr)
+        let numOfLikesSpan = document.querySelector(`#numOfLikes_${id}`);
+        let numOfLikes = numOfLikesSpan.textContent
 
         fetch(`/isliked/${id}`)
             .then(response => response.json())
@@ -64,20 +66,21 @@
                             console.log(result.message);
                             loveImg.classList.remove('unlike');
                             loveImg.classList.add('like');
+                            numOfLikesSpan.textContent = parseInt(numOfLikes) - 1;
+
                         })
                 } else {
                     console.log("post liked is false")
                     fetch(`/like/${id}`)
                         .then(response => response.json())
                         .then(result => {
-                            console.log(result);
+                            // console.log(result);
                             loveImg.classList.remove('like');
                             loveImg.classList.add('unlike');
-
-
-                            // let numOfLikesSpan = document.querySelector('#numOfLikes')
-                            // numOfLikesSpan.textContent = result.updated_post_likes
-
+                            if (result.message == "liked successfully") {
+                                numOfLikesSpan.textContent = parseInt(numOfLikes) + 1;
+                                // console.log(numOfLikesSpan)
+                            }
                         })
                 }
             })
@@ -188,7 +191,7 @@
                     {% endif %}
 
                     <span id="likeSpan">
-                        <span id="numOfLikes" class="font-weight-light " style="font-size: 18px" ;>
+                        <span id="numOfLikes_{{post.id}}" class="font-weight-light " style="font-size: 18px" ;>
                             {{post.number_of_likes}}
                         </span>
                     </span>

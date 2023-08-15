@@ -139,13 +139,23 @@ def userprofile(request, usernameid):
     else:
         user_own_profile = False   
 
+    allLikes = Like.objects.all()
+    allPostsLiked = []
+    try:
+        for like in allLikes:
+            if like.user.id == request.user.id:
+                allPostsLiked.append(like.post.id)
+    except:
+        allPostsLiked = []
+
     return render(request, "network/userprofile.html", {
         "userDetails": userProfileShow,
         "user_to_follow_num": user_to_follow_num,
         "user_following_num": user_following_num,
         "ownerPosts": ownerPosts,
         "user_own_profile": user_own_profile,
-        "page_obj": page_obj
+        "page_obj": page_obj,
+        "allPostsLiked": allPostsLiked
     })
 
 
@@ -196,13 +206,24 @@ def following(request, userid):
     posts_user_is_following = Post.objects.filter(owner__in=list_of_users_following).annotate(number_of_likes=Count('likedpost')).order_by('-id')
 
     # print(posts_user_is_following)
+
+    allLikes = Like.objects.all()
+    allPostsLiked = []
+    try:
+        for like in allLikes:
+            if like.user.id == request.user.id:
+                allPostsLiked.append(like.post.id)
+    except:
+        allPostsLiked = []
         
     paginator = Paginator(posts_user_is_following, 4)
     page_number = request.GET.get('page')
     page_object = paginator.get_page(page_number)
     
     return render(request, "network/following.html", {
-        "page_obj": page_object
+        "page_obj": page_object,
+        "allPostsLiked": allPostsLiked
+
     })
            
 

@@ -10,6 +10,10 @@
             function handleImageLikeUnlike(id, arr) {
                 console.log(id)
                 console.log(arr)
+                let numOfLikesSpan = document.querySelector(`#numOfLikes_${id}`);
+                let numOfLikes = numOfLikesSpan.textContent
+
+
 
                 fetch(`/isliked/${id}`)
                 .then(response=> response.json())
@@ -26,43 +30,21 @@
                                 console.log(result.message);
                                 loveImg.classList.remove('unlike');
                                 loveImg.classList.add('like');
+                                numOfLikesSpan.textContent = parseInt(numOfLikes) - 1;
+
                             })
                     } else {
                         console.log("post liked is false")
                         fetch(`/like/${id}`)
                             .then(response => response.json())
                             .then(result => {
-                                console.log(result);
+                                // console.log(result);
                                 loveImg.classList.remove('like');
                                 loveImg.classList.add('unlike');
-
-                                if (result.message == "liked successfully"){
-                                    let newSpan = document.createElement('span');
-                                    newSpan.textContent = result.updated_post_likes;
-
-                                    let likeSpan = document.querySelector('#likeSpan')
-
-                                    let numOfLikesSpan =document.querySelector('#numOfLikes');
-                                    // likeSpan.remove(numOfLikesSpan);
-                                    likeSpan.replaceChild(newSpan, numOfLikesSpan);
-
-                                    console.log(likeSpan)
-
-
-                                    // let numOfLikes = numOfLikesSpan.textContent
-                                    // console.log(numOfLikes)
-
-                                    // numOfLikesSpan.textContent = parseInt(numOfLikes) + 1;
-
+                                if (result.message == "liked successfully"){   
+                                    numOfLikesSpan.textContent = parseInt(numOfLikes) + 1;
                                     // console.log(numOfLikesSpan)
-
-
                                 }
-
-                                
-                                // let numOfLikesSpan = 
-                                // numOfLikesSpan.textContent = result.updated_post_likes
-                             
                             })
                     }
                 })
@@ -149,7 +131,7 @@
                                 {% endif %}
 
                                 <span id="likeSpan">
-                                    <span id="numOfLikes" class="font-weight-light " style="font-size: 18px" ;>
+                                    <span id="numOfLikes_{{post.id}}" class="font-weight-light " style="font-size: 18px" ;>
                                         {{post.number_of_likes}}
                                     </span>
                                 </span>
